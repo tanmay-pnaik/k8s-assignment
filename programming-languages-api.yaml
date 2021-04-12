@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: programming-languages-api
+spec:
+  selector:
+    matchLabels:
+      app: programming-languages-api
+  template:
+    metadata:
+      labels:
+        app: programming-languages-api
+    spec:
+      containers:
+      - name: programming-languages-api
+        image: sertanmay/programming-languages-api:v1
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: mariadb-configmap
+              key: database_url
+        - name: DB_USER
+          value: root
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mariadb-secret
+              key: mariadb-root-password
+        - name: DB_NAME
+          value: k8s_assignment
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: programming-languages-api-service
+spec:
+  selector:
+    app: programming-languages-api
+  type: LoadBalancer
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 3000
+    nodePort: 30001
+
